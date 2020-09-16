@@ -1,78 +1,54 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
 
 const App = () => {
 
-  const [calcState, setCalcState] = useState({
-    firstNum: '',
-    secondNum: '',
-    operator: '',
-    result: ''
+  const [movieState, setMovieState] = useState({
+    title: '',
+    movie: {}
   })
 
-  calcState.handleAddDigit = event => {
-    if (calcState.operator.length === 0) {
-      setCalcState({ ...calcState, firstNum: calcState.firstNum + event.target.value })
-    } else {
-      setCalcState({ ...calcState, secondNum: calcState.secondNum + event.target.value})
-    }
-  }
-  calcState.handleOperator = event => {
-    setCalcState({ ...calcState, operator: event.target.value })
-  }
-  calcState.handleResult = () => {
-    let result = ''
-    let firstNum = parseInt(calcState.firstNum)
-    let secondNum = parseInt(calcState.secondNum)
-
-    switch (calcState.operator) {
-      case '+':
-        result = `${firstNum + secondNum}` 
-        break
-      case '-':
-        result = `${firstNum - secondNum}`
-        break
-      case 'x':
-        result = `${firstNum * secondNum}`
-        break
-      case '/':
-        result = `${firstNum / secondNum}`
-        break
-      default:
-        break
-    }
-
-    setCalcState({ ...calcState, result })
+  movieState.handleInputChange = event => {
+    setMovieState({ ...movieState, [event.target.name]: event.target.value })
   }
 
-  calcState.handleClear = () => {
-    setCalcState({ ...calcState, firstNum: '', secondNum: '', operator: '', result: '' })
+  movieState.handleSearchMovie = event => {
+    event.preventDefault()
+    axios.get(`http://www.omdbapi.com/?apikey=trilogy&t=${movieState.title}`)
+      .then(({ data }) => {
+        setMovieState({ ...movieState, movie: data })
+      })
   }
+
+  useEffect(() => {
+    axios.get('http://www.omdbapi.com/?apikey=trilogy&t=Goodfellas')
+      .then(({ data }) => {
+        setMovieState({ ...movieState, movie: data })
+      })
+  }, [])
 
   return (
     <>
-      <p>
-        <button value={0} onClick={calcState.handleAddDigit}>0</button>
-        <button value={1} onClick={calcState.handleAddDigit}>1</button>
-        <button value={2} onClick={calcState.handleAddDigit}>2</button>
-        <button value={3} onClick={calcState.handleAddDigit}>3</button>
-        <button value={4} onClick={calcState.handleAddDigit}>4</button>
-        <button value={5} onClick={calcState.handleAddDigit}>5</button>
-        <button value={6} onClick={calcState.handleAddDigit}>6</button>
-        <button value={7} onClick={calcState.handleAddDigit}>7</button>
-        <button value={8} onClick={calcState.handleAddDigit}>8</button>
-        <button value={9} onClick={calcState.handleAddDigit}>9</button>
-      </p>
-      <p>
-        <button value="+" onClick={calcState.handleOperator}>+</button>
-        <button value="-" onClick={calcState.handleOperator}>-</button>
-        <button value="x" onClick={calcState.handleOperator}>x</button>
-        <button value="/" onClick={calcState.handleOperator}>/</button>
-      </p>
-      <p>
-        <button onClick={calcState.handleResult}>=</button>
-        <button onClick={calcState.handleClear}>RESET</button>
-      </p>
-  <h1>{calcState.firstNum} {calcState.operator} {calcState.secondNum} {calcState.result.length > 0 ? `= ${calcState.result}` : ''}</h1>
+      <form>
+        <p>
+          <label htmlFor="title">title</label>
+          <input
+            type="text"
+            name="title"
+            value={movieState.title}
+            onChange={movieState.handleInputChange} />
+        </p>
+        <p>
+          <button onClick={movieState.handleSearchMovie}>Search Movie</button>
+        </p>
+      </form>
+      <div className="card" style={{ width: '18rem' }}>
+        <img src={movieState.movie.Poster} className="card-img-top" alt={movieState.movie.Title} />
+        <div className="card-body">
+          <h5 className="card-title">{movieState.movie.Title}</h5>
+          <p className="card-text">{movieState.movie.Plot}</p>
+        </div>
+      </div>
     </>
   )
 }
